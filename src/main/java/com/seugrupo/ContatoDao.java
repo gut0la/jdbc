@@ -48,4 +48,69 @@ public class ContatoDao {
 
         return contatos;
     }
+
+    public List<Contato> listarOrdenadoPorNome() {
+        String sql = "SELECT * FROM contatos ORDER BY nome ASC";
+        List<Contato> contatos = new ArrayList<>();
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String nome = rs.getString("nome");
+                String email = rs.getString("email");
+                String telefone = rs.getString("telefone");
+                contatos.add(new Contato(nome, email, telefone));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao listar contatos ordenados: " + e.getMessage());
+        }
+
+        return contatos;
+    }
+
+    public List<Contato> listarPorDominioEmail(String dominio) {
+        String sql = "SELECT * FROM contatos WHERE email ILIKE ?";
+        List<Contato> contatos = new ArrayList<>();
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + dominio);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String nome = rs.getString("nome");
+                String email = rs.getString("email");
+                String telefone = rs.getString("telefone");
+                contatos.add(new Contato(nome, email, telefone));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao listar por domínio de email: " + e.getMessage());
+        }
+
+        return contatos;
+    }
+
+
+    public void atualizarEmail(int id, String novoEmail) {
+        String sql = "UPDATE contatos SET email = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, novoEmail);
+            stmt.setInt(2, id);
+
+            int linhasAfetadas = stmt.executeUpdate();
+            if (linhasAfetadas > 0) {
+                System.out.println("Email atualizado com sucesso!");
+            } else {
+                System.out.println("Nenhum contato encontrado com o ID fornecido.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao atualizar email: " + e.getMessage());
+        }
+    }
 }
